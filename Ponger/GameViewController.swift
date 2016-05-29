@@ -21,7 +21,6 @@ class GameViewController: UIViewController {
         skView.ignoresSiblingOrder = true
         scene.scaleMode = .AspectFill
         skView.presentScene(scene)
-        
     }
 
     override func prefersStatusBarHidden() -> Bool {

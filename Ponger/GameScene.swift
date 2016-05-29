@@ -22,6 +22,8 @@ class GameScene: SKScene {
     let ballSpeed: CGFloat = 500.0
     var velocity: CGPoint = CGPoint.zero
     
+    var isFingerOnPaddle: Bool = false
+    
     
     override init(size: CGSize) {
         let maxAspectRatio:CGFloat = 4/3
@@ -60,6 +62,33 @@ class GameScene: SKScene {
     }
     
     override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
+        let touch = touches.first
+        let touchLocation = touch!.locationInNode(self)
+        
+        if let body = physicsWorld.bodyAtPoint(touchLocation) {
+            if body.node?.name == "paddle" {
+                isFingerOnPaddle = true
+            }
+        }
+    }
+    
+    override func touchesMoved(touches: Set<UITouch>, withEvent event: UIEvent?) {
+        if isFingerOnPaddle {
+            let touch = touches.first
+            let touchLocation = touch!.locationInNode(self)
+            let previousLocation = touch?.previousLocationInNode(self)
+            let paddle = childNodeWithName("paddle") as! SKSpriteNode
+            
+            var paddleY = paddle.position.y + (touchLocation.y - (previousLocation?.y)!)
+            paddleY = max(paddleY, paddle.size.height/2)
+            paddleY = min(paddleY, size.height - paddle.size.height/2)
+            
+            paddle.position = CGPoint(x: paddle.position.x, y: paddleY)
+        }
+    }
+    
+    override func touchesEnded(touches: Set<UITouch>, withEvent event: UIEvent?) {
+        isFingerOnPaddle = false
     }
    
     override func update(currentTime: CFTimeInterval) {
@@ -75,6 +104,7 @@ class GameScene: SKScene {
         boundsCheckBall()
         checkCollisions()
     }
+    
     
     
     // MARK: - Setup Methods

@@ -42,12 +42,12 @@ class GameScene: SKScene {
         
         player1 = createPaddle()
         player1.zPosition = 2
-        player1.position = CGPoint(x: 10, y: frame.size.height/2)
+        player1.position = CGPoint(x: 40, y: frame.size.height/2)
         addChild(player1)
         
         player2 = createPaddle()
         player2.zPosition = 2
-        player2.position = CGPoint(x: frame.size.width - 10, y: frame.size.height/2)
+        player2.position = CGPoint(x: frame.size.width - 40, y: frame.size.height/2)
         player2.physicsBody?.dynamic = false
         addChild(player2)
         
@@ -56,8 +56,13 @@ class GameScene: SKScene {
         ball.position = CGPoint(x: frame.size.width/2, y: frame.size.height/2)
         addChild(ball)
         
+        var done = false
+        if done == false {
+            velocity = CGPoint(x: ballSpeed, y: 120)
+            done = true
+        }
         
-        velocity = CGPoint(x: ballSpeed, y: 0)
+        print(done)
         debugDrawPlayableArea()
     }
     
@@ -103,9 +108,8 @@ class GameScene: SKScene {
         moveBall(velocity)
         boundsCheckBall()
         checkCollisions()
+        
     }
-    
-    
     
     // MARK: - Setup Methods
     
@@ -131,7 +135,7 @@ class GameScene: SKScene {
      - Returns: SKSpriteNode Paddle Object
      */
     func createPaddle() -> SKSpriteNode {
-        let paddleSize: CGSize = CGSize(width: 40, height: 120)
+        let paddleSize: CGSize = CGSize(width: 40, height: 160)
         let paddleShape: SKShapeNode = SKShapeNode(rectOfSize: paddleSize)
         paddleShape.fillColor = SKColor.whiteColor()
         
@@ -140,6 +144,7 @@ class GameScene: SKScene {
         paddle.zPosition = 2
         paddle.physicsBody = SKPhysicsBody(rectangleOfSize: paddleSize)
         paddle.physicsBody?.affectedByGravity = false
+        paddle
 
         return paddle
     }
@@ -157,6 +162,10 @@ class GameScene: SKScene {
         ball.zPosition = 2
         ball.physicsBody = SKPhysicsBody(circleOfRadius: 20)
         ball.physicsBody?.affectedByGravity = false
+        ball.physicsBody?.allowsRotation = false
+        ball.physicsBody?.restitution = 1
+        ball.physicsBody?.linearDamping = 0
+        ball.physicsBody?.angularDamping = 0
 
         return ball
     }
@@ -188,8 +197,8 @@ class GameScene: SKScene {
      If position is greater then reverse velocity.
      */
     func boundsCheckBall() {
-        let bottomLeft = CGPointZero
-        let topRight = CGPoint(x: size.width, y: size.height)
+        let bottomLeft = CGPoint(x: 0, y: CGRectGetMinY(playableRect))
+        let topRight = CGPoint(x: size.width, y: CGRectGetMaxY(playableRect))
         
         if ball.position.x <= bottomLeft.x {
             ball.position.x = bottomLeft.x

@@ -10,29 +10,35 @@ import SpriteKit
 
 class GameScene: SKScene {
     
+    // Playable area on screen
     let playableRect: CGRect
     
+    // Player elements
     var player1: SKSpriteNode!
     var player2: SKSpriteNode!
     var ball: SKSpriteNode!
     
+    // Time Elements
     var lastUpdateTime: NSTimeInterval = 0
     var dt: NSTimeInterval = 0
     
+    // Default Speed and Velocity
     let ballSpeed: CGFloat = 500.0
     var velocity: CGPoint = CGPoint.zero
     
+    // Player is not touching paddle
     var isFingerOnPaddle: Bool = false
     
+    // Default score
     var player1Score: Int = 0
     var player2Score: Int = 0
     
+    // Labels
     var player1ScoreLabel: SKLabelNode!
     var player2ScoreLabel: SKLabelNode!
     
     
     // MARK: - Game Lifecycle
-    
     override init(size: CGSize) {
         let maxAspectRatio:CGFloat = 4/3
         let playableHeight = size.width / maxAspectRatio
@@ -40,7 +46,7 @@ class GameScene: SKScene {
         playableRect = CGRect(x: 0, y: playableMargin, width: size.width, height: playableHeight)
         super.init(size: size)
     }
-    
+
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -110,9 +116,8 @@ class GameScene: SKScene {
     }
     
     // MARK: - SpriteKit Update Loop
-   
+
     override func update(currentTime: CFTimeInterval) {
-        
         if lastUpdateTime > 0 {
             dt = currentTime - lastUpdateTime
         } else {
@@ -124,6 +129,7 @@ class GameScene: SKScene {
         boundsCheckBall()
         checkCollisions()
         
+        // Display the score in the player score labels
         player1ScoreLabel.text = String(player1Score)
         player2ScoreLabel.text = String(player2Score)
     }
@@ -140,7 +146,7 @@ class GameScene: SKScene {
     /**
      Create a SKSpriteNode from the provided SKShapeNode.
      - Parameters: shape: SKShapeNode created from a previous function.
-     - Returns: SKSpriteNode
+     - Returns: A SKSpriteNode
      */
     func createSpriteNodeFromShape(shape: SKShapeNode) -> SKSpriteNode {
         let texture = view?.textureFromNode(shape)
@@ -149,7 +155,7 @@ class GameScene: SKScene {
     
     /**
      Create a SKShapeNode for the player's paddle.
-     - Returns: SKSpriteNode Paddle Object
+     - Returns: A SKSpriteNode Paddle Object
      */
     func createPaddle() -> SKSpriteNode {
         let paddleSize: CGSize = CGSize(width: 40, height: 160)
@@ -167,7 +173,7 @@ class GameScene: SKScene {
     
     /**
      Create a SKShapeNode for the game ball.
-     - Returns: SKSpriteNode Ball Object
+     - Returns: A SKSpriteNode Ball Object
      */
     func createBall() -> SKSpriteNode {
         let ballShape: SKShapeNode = SKShapeNode(circleOfRadius: 20)
@@ -190,7 +196,7 @@ class GameScene: SKScene {
     
     /**
      Set the ball's position from the calculation of velocity.
-     - Parameters: velocity: CGPoint
+     - Parameters: velocity: The current velocity of the ball
     */
     func moveBall(velocity: CGPoint) {
         let amountToMove = CGPoint(x: velocity.x * CGFloat(dt), y: velocity.y * CGFloat(dt))
@@ -199,7 +205,7 @@ class GameScene: SKScene {
     
     /**
      Set the ball's position from the calculation of velocity towards a location position.
-     - Parameters: location: CGPoint
+     - Parameters: location: The current location of the ball
      */
     func moveBallTowards(location: CGPoint) {
         let offset = CGPoint(x: location.x - ball.position.x, y: location.y - ball.position.y)
@@ -269,7 +275,10 @@ class GameScene: SKScene {
     }
     
     // MARK: - Score
-    
+    /**
+     Creates the default SKLabelNode for player's scores
+     - Returns: A SKLabelNode with a font size of 120
+     */
     func createScoreLabels() -> SKLabelNode {
         let scoreLabel = SKLabelNode(text: "0")
         scoreLabel.fontSize = 120
@@ -278,7 +287,7 @@ class GameScene: SKScene {
     
     /**
      Updates the player's score by 1
-     - Parameters: player: String
+     - Parameters: player: Either 'Player1' or "Player2'
      */
     func updateScore(player: String) {
         if player == "Player1" {

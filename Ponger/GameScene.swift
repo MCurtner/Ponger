@@ -24,6 +24,14 @@ class GameScene: SKScene {
     
     var isFingerOnPaddle: Bool = false
     
+    var player1Score: Int = 0
+    var player2Score: Int = 0
+    
+    var player1ScoreLabel: SKLabelNode!
+    var player2ScoreLabel: SKLabelNode!
+    
+    
+    // MARK: - Game Lifecycle
     
     override init(size: CGSize) {
         let maxAspectRatio:CGFloat = 4/3
@@ -43,6 +51,7 @@ class GameScene: SKScene {
         player1 = createPaddle()
         player1.zPosition = 2
         player1.position = CGPoint(x: 40, y: frame.size.height/2)
+        player1.name = "player1Paddle"
         addChild(player1)
         
         player2 = createPaddle()
@@ -56,22 +65,26 @@ class GameScene: SKScene {
         ball.position = CGPoint(x: frame.size.width/2, y: frame.size.height/2)
         addChild(ball)
         
-        var done = false
-        if done == false {
-            velocity = CGPoint(x: ballSpeed, y: 120)
-            done = true
-        }
-        
-        print(done)
+        velocity = CGPoint(x: ballSpeed, y: 120)
         debugDrawPlayableArea()
+        
+        player1ScoreLabel = createScoreLabels()
+        player1ScoreLabel.position = CGPoint(x: frame.size.width/2 + 60, y: frame.size.height - 130)
+        addChild(player1ScoreLabel)
+        
+        player2ScoreLabel = createScoreLabels()
+        player2ScoreLabel.position = CGPoint(x: frame.size.width/2 - 60, y: frame.size.height - 130)
+        addChild(player2ScoreLabel)
     }
+    
+    // MARK: - Touch Methods
     
     override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
         let touch = touches.first
         let touchLocation = touch!.locationInNode(self)
         
         if let body = physicsWorld.bodyAtPoint(touchLocation) {
-            if body.node?.name == "paddle" {
+            if body.node?.name == "player1Paddle" {
                 isFingerOnPaddle = true
             }
         }
@@ -82,7 +95,7 @@ class GameScene: SKScene {
             let touch = touches.first
             let touchLocation = touch!.locationInNode(self)
             let previousLocation = touch?.previousLocationInNode(self)
-            let paddle = childNodeWithName("paddle") as! SKSpriteNode
+            let paddle = childNodeWithName("player1Paddle") as! SKSpriteNode
             
             var paddleY = paddle.position.y + (touchLocation.y - (previousLocation?.y)!)
             paddleY = max(paddleY, paddle.size.height/2)
@@ -95,6 +108,8 @@ class GameScene: SKScene {
     override func touchesEnded(touches: Set<UITouch>, withEvent event: UIEvent?) {
         isFingerOnPaddle = false
     }
+    
+    // MARK: - SpriteKit Update Loop
    
     override func update(currentTime: CFTimeInterval) {
         
@@ -109,6 +124,8 @@ class GameScene: SKScene {
         boundsCheckBall()
         checkCollisions()
         
+        player1ScoreLabel.text = String(player1Score)
+        player2ScoreLabel.text = String(player2Score)
     }
     
     // MARK: - Setup Methods
@@ -140,11 +157,10 @@ class GameScene: SKScene {
         paddleShape.fillColor = SKColor.whiteColor()
         
         let paddle = createSpriteNodeFromShape(paddleShape)
-        paddle.name = "paddle"
         paddle.zPosition = 2
         paddle.physicsBody = SKPhysicsBody(rectangleOfSize: paddleSize)
         paddle.physicsBody?.affectedByGravity = false
-        paddle
+        paddle.physicsBody?.dynamic = false
 
         return paddle
     }
@@ -192,6 +208,8 @@ class GameScene: SKScene {
         velocity = CGPoint(x: direction.x * ballSpeed, y: direction.y * ballSpeed)
     }
     
+    // MARK: - Bounds and Collision Methods
+    
     /**
      Check that the ball's position is at or greater than the bounds of the displayed screen.
      If position is greater then reverse velocity.
@@ -200,14 +218,7 @@ class GameScene: SKScene {
         let bottomLeft = CGPoint(x: 0, y: CGRectGetMinY(playableRect))
         let topRight = CGPoint(x: size.width, y: CGRectGetMaxY(playableRect))
         
-        if ball.position.x <= bottomLeft.x {
-            ball.position.x = bottomLeft.x
-            velocity.x = -velocity.x
-        }
-        if ball.position.x >= topRight.x {
-            ball.position.x = topRight.x
-            velocity.x = -velocity.x
-        }
+        // Check if the ball's position is at the bottom or top of the screen
         if ball.position.y <= bottomLeft.y {
             ball.position.y = bottomLeft.y
             velocity.y = -velocity.y
@@ -216,8 +227,67 @@ class GameScene: SKScene {
             ball.position.y = topRight.y
             velocity.y = -velocity.y
         }
+        
+        // Check if the ball's position is at the left or right of the screen
+        if ball.position.x >= topRight.x {
+            updateScore("Player2")
+            resetBall()
+        }
+        if ball.position.x <= bottomLeft.x {
+            updateScore("Player1")
+            resetBall()
+        }
     }
     
+    /**
+     Check if a collision has occurred between either paddles and the ball. If a
+     collision has occurred, then reverse velocity.
+     */
+    func checkCollisions() {
+        if CGRectIntersectsRect(ball.frame, player2.frame) {
+            velocity.x = -velocity.x
+        }
+        if CGRectIntersectsRect(ball.frame, player1.frame) {
+            velocity.x = -velocity.x
+        }
+    }
+    
+    /**
+     Remove the ball object from parent and then create a new instance of ball.
+     Sets the ball's velocity to a random Y-Axis value based on screen height.
+     */
+    func resetBall() {
+        ball.removeFromParent()
+        
+        ball = createBall()
+        ball.zPosition = 2
+        ball.position = CGPoint(x: frame.size.width/2, y: frame.size.height/2)
+        addChild(ball)
+        
+        let randomY: CGFloat = CGFloat(Int(arc4random_uniform(UInt32(self.frame.size.height))))
+        velocity = CGPoint(x: -ballSpeed, y: randomY)
+    }
+    
+    // MARK: - Score
+    
+    func createScoreLabels() -> SKLabelNode {
+        let scoreLabel = SKLabelNode(text: "0")
+        scoreLabel.fontSize = 120
+        return scoreLabel
+    }
+    
+    /**
+     Updates the player's score by 1
+     - Parameters: player: String
+     */
+    func updateScore(player: String) {
+        if player == "Player1" {
+            player1Score += 1
+        } else {
+            player2Score += 1
+        }
+    }
+
     /**
      Draw a red rectangle around the playable screen. For debug purposes only.
      */
@@ -229,18 +299,5 @@ class GameScene: SKScene {
         shape.strokeColor = SKColor.redColor()
         shape.lineWidth = 4.0
         addChild(shape)
-    }
-    
-    /**
-     Check if a collision has occurred between either paddles and the ball. If a
-     collision has occurred, then reverse velocity.
-    */
-    func checkCollisions() {
-        if CGRectIntersectsRect(ball.frame, player2.frame) {
-            velocity.x = -velocity.x
-        }
-        if CGRectIntersectsRect(ball.frame, player1.frame) {
-            velocity.x = -velocity.x
-        }
     }
 }

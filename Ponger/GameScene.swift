@@ -46,7 +46,7 @@ class GameScene: SKScene {
         playableRect = CGRect(x: 0, y: playableMargin, width: size.width, height: playableHeight)
         super.init(size: size)
     }
-
+    
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -63,7 +63,7 @@ class GameScene: SKScene {
         player2 = createPaddle()
         player2.zPosition = 2
         player2.position = CGPoint(x: frame.size.width - 40, y: frame.size.height/2)
-        player2.physicsBody?.dynamic = false
+        player2.name = "player2Paddle"
         addChild(player2)
         
         ball = createBall()
@@ -108,6 +108,7 @@ class GameScene: SKScene {
             paddleY = min(paddleY, size.height - paddle.size.height/2)
             
             paddle.position = CGPoint(x: paddle.position.x, y: paddleY)
+            
         }
     }
     
@@ -116,7 +117,7 @@ class GameScene: SKScene {
     }
     
     // MARK: - SpriteKit Update Loop
-
+    
     override func update(currentTime: CFTimeInterval) {
         if lastUpdateTime > 0 {
             dt = currentTime - lastUpdateTime
@@ -167,7 +168,7 @@ class GameScene: SKScene {
         paddle.physicsBody = SKPhysicsBody(rectangleOfSize: paddleSize)
         paddle.physicsBody?.affectedByGravity = false
         paddle.physicsBody?.dynamic = false
-
+        
         return paddle
     }
     
@@ -188,7 +189,7 @@ class GameScene: SKScene {
         ball.physicsBody?.restitution = 1
         ball.physicsBody?.linearDamping = 0
         ball.physicsBody?.angularDamping = 0
-
+        
         return ball
     }
     
@@ -197,7 +198,7 @@ class GameScene: SKScene {
     /**
      Set the ball's position from the calculation of velocity.
      - Parameters: velocity: The current velocity of the ball
-    */
+     */
     func moveBall(velocity: CGPoint) {
         let amountToMove = CGPoint(x: velocity.x * CGFloat(dt), y: velocity.y * CGFloat(dt))
         ball.position = CGPoint(x: ball.position.x + amountToMove.x, y: ball.position.y + amountToMove.y)
@@ -296,7 +297,7 @@ class GameScene: SKScene {
             player2Score += 1
         }
     }
-
+    
     /**
      Draw a red rectangle around the playable screen. For debug purposes only.
      */
